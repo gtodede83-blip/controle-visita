@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Sistema de Visitas Profissional</title>
+
+<style>
+body {
+  font-family: Arial;
+  background: #eef2f7;
+  padding: 20px;
+}
+
+.container {
+  max-width: 1100px;
+  margin: auto;
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+}
+
+h1 {
+  text-align: center;
+}
+
+input, select, button {
+  padding: 10px;
+  margin: 5px;
+}
+
+button {
+  background: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+th, td {
+  border: 1px solid #ccc;
+  padding: 8px;
+  text-align: center;
+}
+
+.resumo {
+  background: #f8f9fa;
+  padding: 15px;
+  margin-top: 20px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>📊 Controle de Visitas Profissional</h1>
+
+<div class="grid">
+
+<div>
+<h3>📍 Registrar Visita</h3>
+<input type="date" id="data">
+<select id="loja"></select>
+<select id="encarregado"></select>
+<input type="text" id="obs" placeholder="Observação">
+<button onclick="salvarVisita()">Salvar</button>
+</div>
+
+<div>
+<h3>⚙️ Cadastro</h3>
+<input type="text" id="novaLoja" placeholder="Nova Loja">
+<button onclick="addLoja()">Adicionar Loja</button>
+
+<input type="text" id="novoEnc" placeholder="Novo Encarregado">
+<button onclick="addEnc()">Adicionar Encarregado</button>
+</div>
+
+</div>
+
+<h3>🔍 Filtro</h3>
+<input type="month" id="filtroMes" onchange="carregar()">
+
+<h3>📅 Histórico</h3>
+<table>
+<thead>
+<tr>
+<th>Data</th>
+<th>Loja</th>
+<th>Encarregado</th>
+<th>Obs</th>
+</tr>
+</thead>
+<tbody id="tabela"></tbody>
+</table>
+
+<div class="resumo">
+<h3>📊 Resumo Mensal</h3>
+<div id="resumo"></div>
+</div>
+
+</div>
+
+<script>
+let lojas = JSON.parse(localStorage.getItem("lojas")) || ["Guara 01", "Guara 02"];
+let encarregados = JSON.parse(localStorage.getItem("encarregados")) || ["João", "Maria"];
+let visitas = JSON.parse(localStorage.getItem("visitas")) || [];
+
+function salvarDados() {
+  localStorage.setItem("lojas", JSON.stringify(lojas));
+  localStorage.setItem("encarregados", JSON.stringify(encarregados));
+  localStorage.setItem("visitas", JSON.stringify(visitas));
+}
+
+function carregarSelects() {
+  let lojaSel = document.getElementById("loja");
+  let encSel = document.getElementById("encarregado");
+
+  lojaSel.innerHTML = lojas.map(l => `<option>${l}</option>`).join("");
+  encSel.innerHTML = encarregados.map(e => `<option>${e}</option>`).join("");
+}
+
+function addLoja() {
+  let nova = document.getElementById("novaLoja").value;
+  if (nova) {
+    lojas.push(nova);
+    salvarDados();
+    carregarSelects();
+  }
+}
+
+function addEnc() {
+  let novo = document.getElementById("novoEnc").value;
+  if (novo) {
+    encarregados.push(novo);
+    salvarDados();
+    carregarSelects();
+  }
+}
+
+function salvarVisita() {
+  let data = document.getElementById("data").value;
+  let loja = document.getElementById("loja").value;
+  let enc = document.getElementById("encarregado").value;
+  let obs = document.getElementById("obs").value;
+
+  if (!data) return alert("Preencha a data!");
+
+  visitas.push({ data, loja, enc, obs });
+  salvarDados();
+  carregar();
+}
+
+function carregar() {
+  let tabela = document.getElementById("tabela");
+  tabela.innerHTML = "";
+
+  let filtro = document.getElementById("filtroMes").value;
+
+  let resumo = {};
+
+  visitas.forEach(v => {
+    if (filtro && !v.data.startsWith(filtro)) return;
+
+    tabela.innerHTML += `
+      <tr>
+        <td>${v.data}</td>
+        <td>${v.loja}</td>
+        <td>${v.enc}</td>
+        <td>${v.obs}</td>
+      </tr>
+    `;
+
+    resumo[v.loja] = (resumo[v.loja] || 0) + 1;
+  });
+
+  let resumoDiv = document.getElementById("resumo");
+  resumoDiv.innerHTML = "";
+
+  Object.keys(resumo).forEach(loja => {
+    resumoDiv.innerHTML += `<p>${loja}: ${resumo[loja]} visitas</p>`;
+  });
+}
+
+carregarSelects();
+carregar();
+</script>
+
+</body>
+</html>
