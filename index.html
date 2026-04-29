@@ -17,29 +17,53 @@
 <ul id="lista"></ul>
 
 <script>
-const API = "COLOQUE_AQUI_SUA_URL";
+// 🔥 NÃO PRECISA URL
+const API = "";
 
 async function salvar() {
-  await fetch(API + "/visitas", {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({
-      data: document.getElementById("data").value,
-      loja_id: document.getElementById("loja").value,
-      encarregado_id: document.getElementById("enc").value,
-      observacao: document.getElementById("obs").value
-    })
-  });
+  try {
+    await fetch(API + "/visitas", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        data: document.getElementById("data").value,
+        loja_id: document.getElementById("loja").value,
+        encarregado_id: document.getElementById("enc").value,
+        observacao: document.getElementById("obs").value
+      })
+    });
 
-  carregar();
+    limparCampos();
+    carregar();
+
+  } catch (erro) {
+    alert("Erro ao salvar");
+    console.error(erro);
+  }
+}
+
+function limparCampos() {
+  document.getElementById("data").value = "";
+  document.getElementById("loja").value = "";
+  document.getElementById("enc").value = "";
+  document.getElementById("obs").value = "";
 }
 
 async function carregar() {
-  let res = await fetch(API + "/visitas");
-  let dados = await res.json();
+  try {
+    let res = await fetch(API + "/visitas");
+    let dados = await res.json();
 
-  document.getElementById("lista").innerHTML =
-    dados.map(v => `<li>${v.data} - ${v.loja}</li>`).join("");
+    document.getElementById("lista").innerHTML =
+      dados.map(v => `
+        <li>
+          📅 ${v.data || "-"} | 🏪 ${v.loja || "-"} | 👤 ${v.encarregado || "-"}
+        </li>
+      `).join("");
+
+  } catch (erro) {
+    console.error("Erro ao carregar:", erro);
+  }
 }
 
 carregar();
